@@ -38,7 +38,7 @@ function autocode(n, timebase, timespan) {
         document.getElementsByName("codenum")[0].value = img;
         document.getElementById("codeok").click();
         countCode += 1; // 次数加1
-        console.log(countCode,": ",img);
+        console.log(countCode.toString,": ",img);
       } else {
         clearTimeout(timer);
         console.log("全部打卡已完成！");
@@ -90,12 +90,13 @@ function htmlSet(count) {
   countRunvalue.style.alignItems = "center";
 
   var countx = document.getElementById("codebestscore");
-  var startx = document.getElementById("codesuccesscount");
+  // var startx = document.getElementById("codesuccesscount");
+  var username = document.getElementById("userrealname");
 
   // 放置按钮位置
   countx.append(start);
-  startx.before(setCountRun);
-  startx.append(countRunvalue);
+  username.before(setCountRun);
+  username.append(countRunvalue);
 
   // 绑定按钮动作
   setCountRun.onclick = function () {
