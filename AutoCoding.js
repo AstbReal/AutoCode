@@ -3,7 +3,7 @@
 // @namespace   Violentmonkey Scripts
 // @match       http://jypsh.jiafei.site/code_training.php
 // @grant       none
-// @version     1.0
+// @version     1.2
 // @author      Astbreal
 // @description 2022/7/18 14:25:35
 // @license     MIT
@@ -109,7 +109,7 @@ function htmlSet(count) {
   start.onclick = function () {
     console.log("开始打码！一共有",count,"次。");
     // console.log(typeof(count));
-    autocode(count, 2.5, 1.4); //建议设置24 因为有图片的数字与答案不一致
+    autocode(count, 2.5, 1.9); //建议设置24 因为有图片的数字与答案不一致
   };
 }
 
