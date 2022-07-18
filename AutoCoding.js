@@ -4,8 +4,9 @@
 // @match       http://jypsh.jiafei.site/code_training.php
 // @grant       none
 // @version     1.0
-// @author      -
+// @author      Astbreal
 // @description 2022/7/18 14:25:35
+// @license     MIT
 // ==/UserScript==
 function autocode(n, timebase, timespan) {
   //n 为打卡次数，timebase为基础时间（最低多少秒打卡），timespan是时间误差。时间基本单位为秒。
@@ -26,8 +27,8 @@ function autocode(n, timebase, timespan) {
         if (countCode === 9) {
           setTimeout(function () {
             countSys++;
+            console.log("第",countSys,"已完成");
             codeAciton();
-            console.log("练习一次成功");
           }, 8000);
         }
         let img = document
@@ -37,7 +38,7 @@ function autocode(n, timebase, timespan) {
         document.getElementsByName("codenum")[0].value = img;
         document.getElementById("codeok").click();
         countCode += 1; // 次数加1
-        console.log(img);
+        console.log(countCode,": ",img);
       } else {
         clearTimeout(timer);
         console.log("全部打卡已完成！");
@@ -105,10 +106,9 @@ function htmlSet(count) {
   };
 
   start.onclick = function () {
-    console.log("开始打卡,这是第", count, "次打码！");
+    console.log("开始打码！一共有",count,"次。");
     // console.log(typeof(count));
-
-    autocode(count, 2.6, 1.3); //建议设置24 因为有图片的数字与答案不一致
+    autocode(count, 2.5, 1.4); //建议设置24 因为有图片的数字与答案不一致
   };
 }
 
