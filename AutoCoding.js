@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        New script - jiafei.site
+// @name        AutoCode
 // @namespace   Violentmonkey Scripts
 // @match       http://jypsh.jiafei.site/code_training.php
 // @grant       none
