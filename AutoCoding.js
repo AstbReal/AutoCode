@@ -3,7 +3,7 @@
 // @namespace   Violentmonkey Scripts
 // @match       http://jypsh.jiafei.site/code_training.php
 // @grant       none
-// @version     1.2
+// @version     1.3 修复显示问题
 // @author      Astbreal
 // @description 2022/7/18 14:25:35
 // @license     MIT
@@ -27,7 +27,7 @@ function autocode(n, timebase, timespan) {
         if (countCode === 9) {
           setTimeout(function () {
             countSys++;
-            console.log("第",countSys,"已完成");
+            console.log("第",countSys,"次打码已完成");
             codeAciton();
           }, 8000);
         }
@@ -38,7 +38,7 @@ function autocode(n, timebase, timespan) {
         document.getElementsByName("codenum")[0].value = img;
         document.getElementById("codeok").click();
         countCode += 1; // 次数加1
-        console.log(countCode.toString,": ",img);
+        console.log( countCode.toString().concat(": ",img));
       } else {
         clearTimeout(timer);
         console.log("全部打卡已完成！");
