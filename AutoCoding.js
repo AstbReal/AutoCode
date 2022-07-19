@@ -3,9 +3,9 @@
 // @namespace   Violentmonkey Scripts
 // @match       http://jypsh.jiafei.site/code_training.php
 // @grant       none
-// @version     1.3 修复显示问题
+// @version     1.4 
 // @author      Astbreal
-// @description 2022/7/18 14:25:35
+// @description 2022/7/18 14:25:35 修复偶尔时间超过5s的问题
 // @license     MIT
 // ==/UserScript==
 function autocode(n, timebase, timespan) {
@@ -58,7 +58,7 @@ function autocode(n, timebase, timespan) {
   codeAciton();
 }
 
-function htmlSet(count) {
+function htmlSet(count,timebase, timespan) {
   // 开始打开按钮
   let start = document.createElement("button");
   start.id = "startas01";
@@ -109,12 +109,12 @@ function htmlSet(count) {
   start.onclick = function () {
     console.log("开始打码！一共有",count,"次。");
     // console.log(typeof(count));
-    autocode(count, 2.5, 1.9); //建议设置24 因为有图片的数字与答案不一致
+    autocode(count, timebase, timespan); //建议设置24 因为有图片的数字与答案不一致
   };
 }
 
 (function () {
   "use strict";
   var countRun = 22; // 默认22次
-  htmlSet(countRun);
+  htmlSet(countRun,2.5,1.6);
 })();
