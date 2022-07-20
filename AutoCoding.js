@@ -11,11 +11,10 @@
 // @license     MIT
 // ==/UserScript==
 
-// 使用随机数种子制作伪随机数
-
 var timebase = 2.1; // 全局时间基数
 var timeMax = 4.5; // 最大有效打码时间
 
+// 使用随机数种子制作伪随机数
 class Random {
   // 实例化一个随机数生成器，seed=随机数种子，默认当前时间
   constructor(seed) {
