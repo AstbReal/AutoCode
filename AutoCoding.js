@@ -3,16 +3,18 @@
 // @namespace   Violentmonkey Scripts
 // @match       http://jypsh.jiafei.site/code_training.php
 // @grant       none
-// @version     2
+// @version     3
 // @author      Astbreal
 // @description 2022年7月20日 11:21:56
 //              - 修复提供随机数种子，使时间显示更像真人操作
-//              - 提供设定时间按钮，默认的时间基数是2.4s(想更改自己去改源码)，time是最终要要设定的时间。 默认最终时间是4s左右
+//              - 增加了出现错误修复机制，节省打卡时间。
 // @license     MIT
 // ==/UserScript==
 
-var timebase = 2.1; // 全局时间基数
-var timeMax = 4.5; // 最大有效打码时间
+var timebase = 1.5; // 全局时间基数
+var timeMax = 4.3; // 最大有效打码时间
+var countRun = 22; // 默认22次
+var time = 4; // 默认每次打卡4s左右
 
 // 使用随机数种子制作伪随机数
 class Random {
@@ -30,51 +32,101 @@ class Random {
   }
 }
 
-function autocode(n, time) {
+// 判断第n次小打卡时有没有错误
+function faultExisted(codeNum) {
+  if (codeNum > 0) {
+    let tableId = document.getElementById("scoretable");
+    let result = tableId.rows[codeNum].cells[3].innerText.trim("");
+    // 取出表格，若表格中有错误的值，则刷新页面并将打卡次数加1
+    if (result === "错误") {
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    return false;
+  }
+}
+
+function passThisWork(needNum, timespan) {
+  let count = 0;
+  let timer = setInterval(function () {
+    if (count < needNum) {
+      document.getElementById("codeok").click();
+      count++;
+    } else {
+      clearTimeout(timer);
+      return;
+    }
+  }, timespan);
+}
+
+function autocode(finalDozenNum, time) {
   //n 为打卡次数，timebase为基础时间（最低多少秒打卡），timespan是时间误差。时间基本单位为秒。
-  let commit = document.getElementById("sysok");
-  let countCode = 0; // 10次小任务，打完重置为0
-  let countSys = 0; // 默认开启
+  let commit = document.getElementById("sysok"); // 此处是每10次打完后需要点的确定键
+  let codeNum = 0; // 10次小任务计数器，一组打完重置为0
+  let dozenNum = 0; // 组数计数器。
   let timespan = time - timebase;
-  let random = new Random();
+  let noFault = true;
+  let passtime = 400; // pass时点击的时间
 
   // 每隔2-3.5秒填充并确认一次。延迟问题
   function codeAciton() {
-    let timer = setInterval(function () {
-      if (countCode >= 10) {
-        clearTimeout(timer);
-        countCode = 0;
-        return;
-      }
-
-      if (countSys < n) {
-        if (countCode === 9) {
-          setTimeout(function () {
-            countSys++;
-            console.log("第", countSys, "次打码已完成");
-            codeAciton();
-          }, 8000);
+    // 使用setTimeout做真随机定时任务
+    function randomTimeWork() {
+      let random = new Random();
+      let timer = setTimeout(function () {
+        // 只有做了一次才能检查
+        if (codeNum > 0) {
+          // 此处是检查上一次的打卡有没有出现错误
+          let exist = faultExisted(codeNum);
+          if (exist) {
+            passCount = 10 - codeNum;
+            passThisWork(passCount, passtime); // 直接错误提交后面的所有代码
+            codeNum = 0;
+            noFault = false;
+            setTimeout(function () {
+              codeAciton();
+            }, passCount * passtime + 5000);
+            return;
+          }
         }
+
+        if (codeNum > 9) {
+          console.log("第", dozenNum, "次打码已完成");
+          codeAciton();
+          codeNum = 0;
+          return;
+        }
+
+        //任务
         let img = document
           .getElementsByTagName("img")[0]
           .src.split("_")[1]
           .split(".")[0];
         document.getElementsByName("codenum")[0].value = img;
         document.getElementById("codeok").click();
-        countCode += 1; // 次数加1
-        console.log(countCode.toString().concat(": ", img));
-      } else {
+        codeNum += 1; // 次数加1
+        console.log(codeNum.toString().concat(": ", img)); // 在控制台显示计数
+
+        // 递归调用，做随机时间定时任务
+        randomTimeWork();
         clearTimeout(timer);
-        console.log("全部打卡已完成！");
-        // location.reload();
-      }
-    }, timebase * 1000 + timespan * 1000 * random.next());
-    if (countSys < n) {
-      commit.click();
+      }, timebase * 1000 + timespan * 1000 * random.next());
     }
-  }
-  if (n > 0) {
-    commit.click();
+
+    if (dozenNum < finalDozenNum) {
+      if (noFault) {
+        // 每成功的进行一次codeAction就组数的记录加一
+        dozenNum++;
+      }
+      commit.click();
+      randomTimeWork();
+    } else {
+      // 指定的任务次数已完成
+      console.log("全部打卡已完成！");
+      return;
+    }
   }
 
   codeAciton();
@@ -95,29 +147,29 @@ function htmlSet(count, time) {
   let setCountRun = document.createElement("button");
   setCountRun.id = "setCountRun01";
   setCountRun.textContent = "确认设置";
-  setCountRun.style.width = "100px";
+  setCountRun.style.width = "90px";
   setCountRun.style.height = "35px";
-  setCountRun.style.fontSize = "18px";
+  setCountRun.style.fontSize = "15px";
   setCountRun.style.alignItems = "center";
   setCountRun.style.color = "rgb(0,0,139)";
 
   // 每次打码单位时间(2.6-4s)
   let CodeTime = document.createElement("input");
   CodeTime.id = "CodeTime01";
-  CodeTime.value = "4s(Max Time)";
-  CodeTime.style.width = "100px";
+  CodeTime.value = "4s(默认时间)";
+  CodeTime.style.width = "90px";
   CodeTime.style.height = "40px";
-  CodeTime.style.fontSize = "15px";
+  CodeTime.style.fontSize = "13px";
   CodeTime.style.color = "rgb(128,0,128)";
   CodeTime.style.alignItems = "center";
 
   // 次数文本
   let RunTimevalue = document.createElement("input");
   RunTimevalue.id = "countRun01";
-  RunTimevalue.value = "22(Count)";
-  RunTimevalue.style.width = "80px";
+  RunTimevalue.value = "22(默认次数)";
+  RunTimevalue.style.width = "90px";
   RunTimevalue.style.height = "40px";
-  RunTimevalue.style.fontSize = "15px";
+  RunTimevalue.style.fontSize = "13px";
   RunTimevalue.style.color = "green";
   RunTimevalue.style.alignItems = "center";
 
@@ -135,25 +187,25 @@ function htmlSet(count, time) {
   window.onload = function () {
     // CodeTime 设置焦点和非焦点时的默认值。
     CodeTime.onfocus = function () {
-      if (CodeTime.value.trim() == "4s(Max Time)") {
+      if (CodeTime.value.trim() == "4s(默认时间)") {
         CodeTime.value = "";
       }
     };
     CodeTime.onblur = function () {
       if (CodeTime.value.trim() == "") {
-        CodeTime.value = "4s(Max Time)";
+        CodeTime.value = "4s(默认时间)";
       }
     };
 
     // RunTimevalue 焦点和非焦点默认值
     RunTimevalue.onfocus = function () {
-      if (RunTimevalue.value.trim() == "22(Count)") {
+      if (RunTimevalue.value.trim() == "22(默认次数)") {
         RunTimevalue.value = "";
       }
     };
     RunTimevalue.onblur = function () {
       if (RunTimevalue.value.trim() == "") {
-        RunTimevalue.value = "22(Count)";
+        RunTimevalue.value = "22(默认次数)";
       }
     };
   };
@@ -179,7 +231,7 @@ function htmlSet(count, time) {
     if (parseFloat(TimeStr) > timebase && parseFloat(TimeStr) < timeMax) {
       time = parseFloat(TimeStr);
       console.log("已经将单次最大时间设置为", time);
-    }else{
+    } else {
       console.log(
         `设置失败，单词打码时间必须介入在${timebase}到${timeMax}秒之间，当前设置的单次打码时间为：`,
         parseInt(TimeStr)
@@ -197,7 +249,5 @@ function htmlSet(count, time) {
 
 (function () {
   "use strict";
-  var countRun = 22; // 默认22次
-  var time = 4; // 默认每次打卡4s左右
   htmlSet(countRun, time);
 })();
