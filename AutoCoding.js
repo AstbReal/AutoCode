@@ -3,17 +3,17 @@
 // @namespace   Violentmonkey Scripts
 // @match       http://jypsh.jiafei.site/code_training.php
 // @grant       none
-// @version     3
+// @version     3.1
 // @author      Astbreal
-// @description 2022年7月20日 11:21:56
-//              - 修复提供随机数种子，使时间显示更像真人操作
-//              - 增加了出现错误修复机制，节省打卡时间。
+// @description 2022年8月20日 11:21:56
+//              - 修复了错误检测机制
+//              - 现在不需要多设置次数防止出错了
 // @license     MIT
 // ==/UserScript==
 
 var timebase = 1.5; // 全局时间基数
-var timeMax = 4.3; // 最大有效打码时间
-var countRun = 22; // 默认22次
+var timeMax = 4.5; // 最大有效打码时间
+var countRun = 20; // 默认20次
 var time = 4; // 默认每次打卡4s左右
 
 // 使用随机数种子制作伪随机数
@@ -52,7 +52,7 @@ function passThisWork(needNum, timespan) {
   let count = 0;
   let timer = setInterval(function () {
     if (count < needNum) {
-      document.getElementById("codeok").click();
+      document.getElementById("codecancle").click();
       count++;
     } else {
       clearTimeout(timer);
@@ -67,11 +67,19 @@ function autocode(finalDozenNum, time) {
   let codeNum = 0; // 10次小任务计数器，一组打完重置为0
   let dozenNum = 0; // 组数计数器。
   let timespan = time - timebase;
-  let noFault = true;
-  let passtime = 400; // pass时点击的时间
-
+  let passtime = 800; // pass时点击的时间
+  
   // 每隔2-3.5秒填充并确认一次。延迟问题
   function codeAciton() {
+    if (dozenNum < finalDozenNum) {
+      commit.click();
+      randomTimeWork();
+    } else {
+      // 指定的任务次数已完成
+      console.log("全部打卡已完成！");
+      return;
+    }
+
     // 使用setTimeout做真随机定时任务
     function randomTimeWork() {
       let random = new Random();
@@ -81,21 +89,26 @@ function autocode(finalDozenNum, time) {
           // 此处是检查上一次的打卡有没有出现错误
           let exist = faultExisted(codeNum);
           if (exist) {
+            console.log("检测到有任务失败，正在快速重置任务...")
             passCount = 10 - codeNum;
             passThisWork(passCount, passtime); // 直接错误提交后面的所有代码
             codeNum = 0;
-            noFault = false;
+            console.log("任务重置完成！")
             setTimeout(function () {
               codeAciton();
-            }, passCount * passtime + 5000);
+            // }, 1000);
+            }, passCount * passtime + 4000);
             return;
           }
         }
 
         if (codeNum > 9) {
-          console.log("第", dozenNum, "次打码已完成");
-          codeAciton();
           codeNum = 0;
+          dozenNum++
+          console.log("第", dozenNum, "次打码已完成");
+          setTimeout(function () {
+            codeAciton();
+          }, 1000);
           return;
         }
 
@@ -113,19 +126,6 @@ function autocode(finalDozenNum, time) {
         randomTimeWork();
         clearTimeout(timer);
       }, timebase * 1000 + timespan * 1000 * random.next());
-    }
-
-    if (dozenNum < finalDozenNum) {
-      if (noFault) {
-        // 每成功的进行一次codeAction就组数的记录加一
-        dozenNum++;
-      }
-      commit.click();
-      randomTimeWork();
-    } else {
-      // 指定的任务次数已完成
-      console.log("全部打卡已完成！");
-      return;
     }
   }
 
@@ -166,7 +166,7 @@ function htmlSet(count, time) {
   // 次数文本
   let RunTimevalue = document.createElement("input");
   RunTimevalue.id = "countRun01";
-  RunTimevalue.value = "22(默认次数)";
+  RunTimevalue.value = "20(默认次数)";
   RunTimevalue.style.width = "90px";
   RunTimevalue.style.height = "40px";
   RunTimevalue.style.fontSize = "13px";
@@ -199,13 +199,13 @@ function htmlSet(count, time) {
 
     // RunTimevalue 焦点和非焦点默认值
     RunTimevalue.onfocus = function () {
-      if (RunTimevalue.value.trim() == "22(默认次数)") {
+      if (RunTimevalue.value.trim() == "20(默认次数)") {
         RunTimevalue.value = "";
       }
     };
     RunTimevalue.onblur = function () {
       if (RunTimevalue.value.trim() == "") {
-        RunTimevalue.value = "22(默认次数)";
+        RunTimevalue.value = "20(默认次数)";
       }
     };
   };
@@ -215,12 +215,12 @@ function htmlSet(count, time) {
     // 设置打码总次数
     countStr = RunTimevalue.value.valueOf();
 
-    if (parseInt(countStr) > 0 && parseInt(countStr) < 35) {
+    if (parseInt(countStr) > 0 && parseInt(countStr) < 40) {
       count = parseInt(countStr);
       console.log("已经将次数设置为", count);
     } else {
       console.log(
-        "设置失败，次数必须介入在0到35次之间，当前总次数为：",
+        "设置失败，次数必须介入在0到40次之间，当前总次数为：",
         parseInt(countStr)
       );
     }
@@ -243,7 +243,7 @@ function htmlSet(count, time) {
   start.onclick = function () {
     console.log("开始打码！一共有", count, "次。");
     // console.log(typeof(count));
-    autocode(count, time); //建议设置24 因为有图片的数字与答案不一致
+    autocode(count, time);
   };
 }
 
