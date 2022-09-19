@@ -3,11 +3,9 @@
 // @namespace   Violentmonkey Scripts
 // @match       http://jypsh.jiafei.site/code_training.php
 // @grant       none
-// @version     3.1
+// @version     3.2
 // @author      Astbreal
-// @description 2022年8月20日 11:21:56
-//              - 修复了错误检测机制
-//              - 现在不需要多设置次数防止出错了
+// @description 2022年9月19日 11:17:00
 // @license     MIT
 // ==/UserScript==
 
@@ -235,7 +233,7 @@ function htmlSet(count, time) {
     } else {
       console.log(
         `设置失败，单词打码时间必须介入在${timebase}到${timeMax}秒之间，当前设置的单次打码时间为：`,
-        parseInt(TimeStr)
+        parseFloat(TimeStr)
       );
     }
     // console.log(typeof(count))
