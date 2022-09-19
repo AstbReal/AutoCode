@@ -68,7 +68,7 @@ function autocode(finalDozenNum, time) {
   let dozenNum = 0; // 组数计数器。
   let timespan = time - timebase;
   let passtime = 800; // pass时点击的时间
-  
+
   // 每隔2-3.5秒填充并确认一次。延迟问题
   function codeAciton() {
     if (dozenNum < finalDozenNum) {
@@ -95,8 +95,9 @@ function autocode(finalDozenNum, time) {
             codeNum = 0;
             console.log("任务重置完成！")
             setTimeout(function () {
+              clearTimeout(timer);
               codeAciton();
-            // }, 1000);
+              // }, 1000);
             }, passCount * passtime + 4000);
             return;
           }
@@ -149,7 +150,7 @@ function htmlSet(count, time) {
   setCountRun.textContent = "确认设置";
   setCountRun.style.width = "90px";
   setCountRun.style.height = "35px";
-  setCountRun.style.fontSize = "15px";
+  setCountRun.style.fontSize = "18px";
   setCountRun.style.alignItems = "center";
   setCountRun.style.color = "rgb(0,0,139)";
 
@@ -158,7 +159,7 @@ function htmlSet(count, time) {
   CodeTime.id = "CodeTime01";
   CodeTime.value = "4s(默认时间)";
   CodeTime.style.width = "90px";
-  CodeTime.style.height = "40px";
+  CodeTime.style.height = "35px";
   CodeTime.style.fontSize = "13px";
   CodeTime.style.color = "rgb(128,0,128)";
   CodeTime.style.alignItems = "center";
@@ -168,7 +169,7 @@ function htmlSet(count, time) {
   RunTimevalue.id = "countRun01";
   RunTimevalue.value = "20(默认次数)";
   RunTimevalue.style.width = "90px";
-  RunTimevalue.style.height = "40px";
+  RunTimevalue.style.height = "35px";
   RunTimevalue.style.fontSize = "13px";
   RunTimevalue.style.color = "green";
   RunTimevalue.style.alignItems = "center";
@@ -178,10 +179,10 @@ function htmlSet(count, time) {
   var username = document.getElementById("userrealname");
 
   // 放置按钮位置
-  countx.append(start);
-  username.before(setCountRun);
-  username.append(RunTimevalue);
+  username.append(setCountRun)
+  username.appendChild(RunTimevalue);
   username.appendChild(CodeTime);
+  username.appendChild(start);
 
   // 设置焦点显示
   window.onload = function () {
