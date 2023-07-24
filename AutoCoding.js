@@ -3,7 +3,7 @@
 // @namespace   Violentmonkey Scripts
 // @match       http://jypsh.jiafei.site/code_training.php
 // @grant       none
-// @version     3.2
+// @version     4.0
 // @author      Astbreal
 // @description 2022年9月19日 11:17:00
 // @license     MIT
@@ -11,8 +11,8 @@
 
 var timebase = 1.5; // 全局时间基数
 var timeMax = 4.5; // 最大有效打码时间
-var countRun = 20; // 默认20次
-var time = 4; // 默认每次打卡4s左右
+var countRun = 20; // 默认20组
+var time = 4; // 默认每组打卡4s左右
 
 // 使用随机数种子制作伪随机数
 class Random {
@@ -30,12 +30,12 @@ class Random {
   }
 }
 
-// 判断第n次小打卡时有没有错误
+// 判断第n组小打卡时有没有错误
 function faultExisted(codeNum) {
   if (codeNum > 0) {
     let tableId = document.getElementById("scoretable");
     let result = tableId.rows[codeNum].cells[3].innerText.trim("");
-    // 取出表格，若表格中有错误的值，则刷新页面并将打卡次数加1
+    // 取出表格，若表格中有错误的值，则刷新页面并将打卡组数加1
     if (result === "错误") {
       return true;
     } else {
@@ -60,7 +60,7 @@ function passThisWork(needNum, timespan) {
 }
 
 function autocode(finalDozenNum, time) {
-  //n 为打卡次数，timebase为基础时间（最低多少秒打卡），timespan是时间误差。时间基本单位为秒。
+  //n 为打卡组数，timebase为基础时间（最低多少秒打卡），timespan是时间误差。时间基本单位为秒。
   let commit = document.getElementById("sysok"); // 此处是每10次打完后需要点的确定键
   let codeNum = 0; // 10次小任务计数器，一组打完重置为0
   let dozenNum = 0; // 组数计数器。
@@ -74,7 +74,7 @@ function autocode(finalDozenNum, time) {
       randomTimeWork();
     } else {
       // 指定的任务次数已完成
-      console.log("全部打卡已完成！");
+      sendLog("全部打卡已完成！");
       return;
     }
 
@@ -87,11 +87,11 @@ function autocode(finalDozenNum, time) {
           // 此处是检查上一次的打卡有没有出现错误
           let exist = faultExisted(codeNum);
           if (exist) {
-            console.log("检测到有任务失败，正在快速重置任务...")
+            sendLog("检测到有任务失败，正在快速重置任务...")
             passCount = 10 - codeNum;
             passThisWork(passCount, passtime); // 直接错误提交后面的所有代码
             codeNum = 0;
-            console.log("任务重置完成！")
+            sendLog("任务重置完成！")
             setTimeout(function () {
               clearTimeout(timer);
               codeAciton();
@@ -104,7 +104,7 @@ function autocode(finalDozenNum, time) {
         if (codeNum > 9) {
           codeNum = 0;
           dozenNum++
-          console.log("第", dozenNum, "次打码已完成");
+          sendLog(`第${dozenNum}次打码已完成`);
           setTimeout(function () {
             codeAciton();
           }, 1000);
@@ -119,7 +119,7 @@ function autocode(finalDozenNum, time) {
         document.getElementsByName("codenum")[0].value = img;
         document.getElementById("codeok").click();
         codeNum += 1; // 次数加1
-        console.log(codeNum.toString().concat(": ", img)); // 在控制台显示计数
+        sendLog(codeNum.toString().concat(": ", img)); // 在控制台显示计数
 
         // 递归调用，做随机时间定时任务
         randomTimeWork();
@@ -130,8 +130,51 @@ function autocode(finalDozenNum, time) {
 
   codeAciton();
 }
+console.log()
+
+//日志函数
+function sendLog(...any){
+  // 拼接传入的数据
+  var Logs = any.join("");
+
+	// 获取目标 <div> 元素
+	var targetDiv = document.getElementById('logBox'); // 替换为你的目标 <div> 元素的 ID
+	targetDiv.appendChild(document.createElement('br'));
+	// 创建文本节点
+	var textNode = document.createTextNode(Logs);
+	
+	// 添加文本节点到目标 <div> 元素
+	targetDiv.appendChild(textNode);
+  targetDiv.style.textAlign = "left";
+	targetDiv.scrollTop = targetDiv.scrollHeight;
+
+  // 同时输出控制台
+  console.log(Logs);
+}
+
+//创建日志框
+function createLogBox() {
+  var logBox = document.createElement('div');
+  logBox.id = 'logBox';
+  // logBox.style.position = 'fixed';
+  logBox.style.bottom = '0';
+  logBox.style.left = '0';
+  logBox.style.width = '900px';
+  logBox.style.height = '230px';
+  logBox.style.backgroundColor = 'rgb(221,196,196)'; // 更改背景颜色为黑色
+  logBox.style.color = 'black'; // 更改文本颜色为绿色
+  logBox.style.margin = 'auto';
+  logBox.style.marginTop = '4px';
+  logBox.style.overflow = 'auto';
+  logBox.style.padding = '5px';
+  logBox.style.fontFamily = 'Arial, sans-serif';
+  logBox.style.whiteSpace='pre-wrap';
+  document.body.appendChild(logBox);
+}
 
 function htmlSet(count, time) {
+  createLogBox();
+
   // 开始打开按钮
   let start = document.createElement("button");
   start.id = "startas01";
@@ -142,7 +185,7 @@ function htmlSet(count, time) {
   start.style.alignItems = "center";
   start.style.color = "rgb(0,0,139)";
 
-  // 设置次数按钮
+  // 设置组数按钮
   let setCountRun = document.createElement("button");
   setCountRun.id = "setCountRun01";
   setCountRun.textContent = "确认设置";
@@ -152,7 +195,7 @@ function htmlSet(count, time) {
   setCountRun.style.alignItems = "center";
   setCountRun.style.color = "rgb(0,0,139)";
 
-  // 每次打码单位时间(2.6-4s)
+  // 每组打码单位时间(2.6-4s)
   let CodeTime = document.createElement("input");
   CodeTime.id = "CodeTime01";
   CodeTime.value = "4s(默认时间)";
@@ -162,10 +205,10 @@ function htmlSet(count, time) {
   CodeTime.style.color = "rgb(128,0,128)";
   CodeTime.style.alignItems = "center";
 
-  // 次数文本
+  // 组数文本
   let RunTimevalue = document.createElement("input");
   RunTimevalue.id = "countRun01";
-  RunTimevalue.value = "20(默认次数)";
+  RunTimevalue.value = "20(默认组数)";
   RunTimevalue.style.width = "90px";
   RunTimevalue.style.height = "35px";
   RunTimevalue.style.fontSize = "13px";
@@ -198,28 +241,28 @@ function htmlSet(count, time) {
 
     // RunTimevalue 焦点和非焦点默认值
     RunTimevalue.onfocus = function () {
-      if (RunTimevalue.value.trim() == "20(默认次数)") {
+      if (RunTimevalue.value.trim() == "20(默认组数)") {
         RunTimevalue.value = "";
       }
     };
     RunTimevalue.onblur = function () {
       if (RunTimevalue.value.trim() == "") {
-        RunTimevalue.value = "20(默认次数)";
+        RunTimevalue.value = "20(默认组数)";
       }
     };
   };
 
   // 绑定按钮动作
   setCountRun.onclick = function () {
-    // 设置打码总次数
+    // 设置打码总组数
     countStr = RunTimevalue.value.valueOf();
 
     if (parseInt(countStr) > 0 && parseInt(countStr) < 40) {
       count = parseInt(countStr);
-      console.log("已经将次数设置为", count);
+      sendLog("已经将组数设置为: ", count);
     } else {
-      console.log(
-        "设置失败，次数必须介入在0到40次之间，当前总次数为：",
+      sendLog(
+        "设置失败，组数必须介入在0到40组之间，当前总组数为： ",
         parseInt(countStr)
       );
     }
@@ -229,19 +272,17 @@ function htmlSet(count, time) {
 
     if (parseFloat(TimeStr) > timebase && parseFloat(TimeStr) < timeMax) {
       time = parseFloat(TimeStr);
-      console.log("已经将单次最大时间设置为", time);
+      sendLog("已经将单组最大时间设置为: ", time);
     } else {
-      console.log(
-        `设置失败，单词打码时间必须介入在${timebase}到${timeMax}秒之间，当前设置的单次打码时间为：`,
+      sendLog(
+        `设置失败，单词打码时间必须介入在${timebase}到${timeMax}秒之间，当前设置的单组打码时间为：`,
         parseFloat(TimeStr)
       );
     }
-    // console.log(typeof(count))
   };
 
   start.onclick = function () {
-    console.log("开始打码！一共有", count, "次。");
-    // console.log(typeof(count));
+    sendLog("开始打码！总共有", count,"组打码。");
     autocode(count, time);
   };
 }
